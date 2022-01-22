@@ -69,8 +69,8 @@ def createBlueMask(img):
     hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 
     if(source == 1): #for fisheye:
-        lower1 = np.array([92,132,67])               # my laptop cam: ([99,90,50]) # (45, 120, 50)
-        upper1 = np.array([123,255,255])
+        lower1 = np.array([92,88,35])               # my laptop cam: ([99,90,50]) # (45, 120, 50)
+        upper1 = np.array([113,255,255])
     elif(source == 0): # native cam:
         lower1 = np.array([87,71,1]) #([141,99,7])
         upper1 = np.array([123,255,255])# [217, 255, 255]                    # ([132,255,255]) #v (163, 255, 255)
