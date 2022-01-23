@@ -1,6 +1,11 @@
+from calendar import c
 import cv2 as cv
 from cv2 import cvtColor
 import numpy as np
+import json
+
+f = open("data.json")
+data = json.load(f)
 
 #accessing camera
 source = 1 #0 is native, 1 is external
@@ -8,10 +13,18 @@ camera = cv.VideoCapture(source, cv.CAP_DSHOW)
 camera.set(cv.CAP_PROP_EXPOSURE, -7)
 
 
-
+def getDistance(focal_length, real_width, width_in_frame): # FIX THIS
+    distance = (real_width * focal_length) / width_in_frame
+   
+    return distance
+   
 
 def isCircle(cnt, contours):
     approx = cv.approxPolyDP(cnt, 0.01 * cv.arcLength(cnt, True), True)
+    
+    #(coord_x, coord_y), radius = cv.minEnclosingCircle(cnt)
+    #center = (int(coord_x), int(coord_y))    
+
     
     if len(approx) > 8 and (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2 - cv.contourArea(cnt) < (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2) * (1 - 0.65)):
         return True
@@ -37,11 +50,18 @@ def drawRect(mask, img, color):
         contours = contours[1]
         
     for contour in contours:
+        (coord_x, coord_y), radius = cv.minEnclosingCircle(contour)
+        center = (int(coord_x), int(coord_y))
+
         if isCircle(contour, contours):
+
+            contour_area = cv.contourArea(contour)
             x, y, w, h = cv.boundingRect(contour)
             aspect_ratio = w/h
-            area = w * h
-            if .7 <= aspect_ratio <= 1.3 and area > 350:
+            #area = w * h
+
+            #if  1.0 >= contour_area / (radius**2 * 3.14) >= .7 
+            if .5 <= aspect_ratio <= 1.5 and contour_area > 50:
                 #cv.circle(frame, (x+ (w/2), y+(y/2)), colored_box, 2)
                 cv.rectangle(frame, (x, y), (x + w, y + h), colored_box, 2)
                 cv.putText(img, color.upper() + " BALL", (x, y - 10), cv.FONT_HERSHEY_SIMPLEX, 0.5, colored_box, 2)
@@ -69,13 +89,15 @@ def createBlueMask(img):
     hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 
     if(source == 1): #for fisheye:
-        lower1 = np.array([92,88,35])               # my laptop cam: ([99,90,50]) # (45, 120, 50)
-        upper1 = np.array([113,255,255])
+        lower1 = np.array([76,105,17])               # S = 80 for pants!  76 80 17 my laptop cam: ([99,90,50]) # (45, 120, 50)
+        upper1 = np.array([127,207,208]) # 127 207 208
     elif(source == 0): # native cam:
         lower1 = np.array([87,71,1]) #([141,99,7])
         upper1 = np.array([123,255,255])# [217, 255, 255]                    # ([132,255,255]) #v (163, 255, 255)
     
     mask_blue = cv.inRange(hsv, lower1, upper1)
+    mask_blue = cv.morphologyEx(mask_blue, cv.MORPH_CLOSE, (7,7))
+
     #mask_blue = cv.bitwise_and(img, img, mask = mask_blue)
     #mask_blue = cv.cvtColor(mask_blue, cv.COLOR_HSV2BGR)
    
@@ -90,14 +112,23 @@ def createRedMask(img):
     hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
     
     if(source == 0): # integrated webcam
-        lower_red_1 = np.array([115,83,0])
-        upper_red_1 = np.array([189,255,255])
+        #lower_red_1 = np.array([0,0,122])
+        #upper_red_1 = np.array([255,255,255])
+
+        lower_red_2 = np.array([0,0,0])
+        upper_red_2 = np.array([157,255,255])
+
+        #mask_red1 = cv.inRange(hsv, lower_red_1, upper_red_1)
+        mask_red2 = cv.inRange(hsv, lower_red_2, upper_red_2)
+
+        mask_red = cv.bitwise_not(mask_red2)
+        mask_red = cv.morphologyEx(mask_red, cv.MORPH_CLOSE, (27, 27))
         #lower_red_1 = np.array([170, 85, 13])         #previous fisheye: ([135,120,31])         for my laptop camera: ([163, 49, 0])
         #upper_red_1 = np.array([229,255,255])                          #fisheye1: ([245,255,255])         ([245, 229, 255])
     elif(source == 1): #fisheye
         lower_red_1 = np.array([135,120,31])   #np.array([0, 127,143])      #
         upper_red_1 = np.array([245,255,255])  #np.array([94,255,255])      #np.array([245,255,255])  
-    mask_red = cv.inRange(hsv, lower_red_1, upper_red_1)
+        mask_red = cv.inRange(hsv, lower_red_1, upper_red_1)
     #mask_red = cv.bitwise_and(img, img, mask = mask_red)
     #mask_red = cv.cvtColor(mask_red, cv.COLOR_HSV2BGR)88
 
@@ -118,8 +149,10 @@ while True:
     #show windows
     cv.imshow("blue mask", mask_blue)
     cv.imshow("red mask", mask_red)
-    cv.imshow("frame", frame)
     
+    cv.imshow("frame", frame)
+    cv.resizeWindow("frame", 600,600)
+
     #break loop if key pressed
     if cv.waitKey(1) & 0xFF is ord('q'):
         break
