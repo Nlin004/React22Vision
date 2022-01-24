@@ -4,15 +4,26 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import cv2
-from img_to_string import to_b64
+# from img_to_string import to_b64
+import base64
 from main import main, source
 
 from tornado.options import define, options
 
+# Converts image to string using base64 encoding.
+def to_b64(filename):
+    with open(filename, "rb") as img_file:
+        my_string = base64.b64encode(img_file.read())
+
+    return my_string
+
+# Websocket defined with port 8080.
 define('port', default=8080, type=int)
 
+# you should know this
 cap = cv2.VideoCapture(source)
-# cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
+
+# LIGHTING: -1 for internal camera, -7 for FISHEYE, -4 for Microsoft HD-3000
 cap.set(cv2.CAP_PROP_EXPOSURE, -4)
 
 # This handler handles a call to the base of the server \
