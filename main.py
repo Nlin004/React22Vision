@@ -12,7 +12,7 @@ data = json.load(f)
 #accessing camera
 source = 1 #0 is native, 1 is external webcam
 camera = cv.VideoCapture(source, cv.CAP_DSHOW)
-camera.set(cv.CAP_PROP_EXPOSURE, -7) # change to -1 for internal camera, -7 for FISHEYE, -4 for Microsoft hd3000
+camera.set(cv.CAP_PROP_EXPOSURE, -4) # change to -1 for internal camera, -7 for FISHEYE, -4 for Microsoft hd3000
 
 
 def getDistance(focal_length, real_width, width_in_frame): # FIX THIS
