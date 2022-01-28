@@ -32,7 +32,7 @@ class IndexHandler(tornado.web.RequestHandler):
     # GET request to get the base webpage
     # from the Tornado server
     def get(self):
-        self.render('ws/www/index.html')
+        self.render('websocket/www/index.html')
 
 # This handler handles a websocket connection
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
@@ -47,9 +47,9 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         
         # enter open cv code here
         output_image = main(frame, message)
-        cv2.imwrite("./ws/frame.jpg", output_image)
+        cv2.imwrite("./websocket/frame.jpg", output_image)
 
-        self.write_message(to_b64("./ws/frame.jpg"))
+        self.write_message(to_b64("./websocket/frame.jpg"))
 
     # function to close a connection on the WebSocket
     def on_close(self):

@@ -1,0 +1,50 @@
+<html>
+    <head>
+
+        <title>Camera</title>
+
+        <script type = 'text/javascript'>
+            var wsC = null;
+
+            function init(){
+                if("WebSocket" in window){
+                    wsC = new WebSocket("ws://localhost:8080/camera/ws/");
+                    
+                    wsC.onopen = function(){
+                        console.log("connection opened");
+                    }
+
+                    wsC.onclose = function(){
+                        console.log("connection closed ")
+                    }
+
+                    wsC.onmessage = function(msg){
+                        document.getElementById("message").innerHTML = msg.data;
+                    }
+
+                }else{
+                    console.log("no websocket")
+                }
+
+            }
+
+            function send(){
+                wsC.send(document.getElementById("name").value)
+            }
+
+        </script>
+
+    </head>
+    <body onload = "init();">
+        <h1> HELLLOOO </h1>
+
+        <input type="text" id = "name">
+        <button onclick = "send();">Submit</button>
+
+        <p id = "message"></p><br>
+
+        <a href = "/"><button>back</button></a>
+
+    </body>
+
+</html>
