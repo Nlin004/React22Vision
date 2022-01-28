@@ -24,7 +24,7 @@ define('port', default=8080, type=int)
 cap = cv2.VideoCapture(source)
 
 # LIGHTING: -1 for internal camera, -7 for FISHEYE, -4 for Microsoft HD-3000
-cap.set(cv2.CAP_PROP_EXPOSURE, -4)
+cap.set(cv2.CAP_PROP_EXPOSURE, -7)
 
 # This handler handles a call to the base of the server \
 # (127.0.0.1:8888/ -> 127.0.0.1:8888/index.html)

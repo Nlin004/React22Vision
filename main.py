@@ -12,7 +12,7 @@ data = json.load(f)
 #accessing camera
 source = 1 #0 is native, 1 is external webcam
 camera = cv.VideoCapture(source, cv.CAP_DSHOW)
-camera.set(cv.CAP_PROP_EXPOSURE, -4) # change to -1 for internal camera, -7 for FISHEYE, -4 for Microsoft hd3000
+camera.set(cv.CAP_PROP_EXPOSURE, -7) # change to -1 for internal camera, -7 for FISHEYE, -4 for Microsoft hd3000
 
 
 def getDistance(focal_length, real_width, width_in_frame): # FIX THIS
@@ -28,7 +28,7 @@ def isCircle(cnt, contours):
     #center = (int(coord_x), int(coord_y))    
 
     # if  1.0 >= cv.contourArea(cnt) / (radius**2 * 3.14) >= .8 and len(approx) > 8: 
-    if len(approx) > 8 and (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2 - cv.contourArea(cnt) < (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2) * (1 - 0.75)):
+    if len(approx) > 7 and (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2 - cv.contourArea(cnt) < (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2) * (1 - 0.69)):
         return True
             
     
@@ -78,7 +78,7 @@ def drawRect(mask, img, color):
 def editImage(img):
     #blur, erode, and dilate frame
     
-    img = cv.GaussianBlur(img, (11, 11), None)
+    img = cv.GaussianBlur(img, (3, 3), None)
     img = cv.morphologyEx(img, cv.MORPH_CLOSE, (7,7))
     img = cv.morphologyEx(img, cv.MORPH_OPEN, (3,3))
 
@@ -143,7 +143,7 @@ def createRedMask(img):
         # upper_red_1 = np.array([245,255,255])  #np.array([94,255,255])      #np.array([245,255,255])  
         mask_red = cv.inRange(hsv, lower1, upper1)
         mask_red2 = cv.inRange(hsv, lower2, upper2)
-        mask_red = mask_red + mask_red2
+        mask_red = cv.bitwise_or(mask_red,mask_red2)
         #mask_red = cv.cvtColor(mask_red, cv.COLOR_HSV2BGR)
         #mask_red = cv.cvtColor(mask_red, cv.COLOR_BGR2GRAY)
 
@@ -172,15 +172,14 @@ def main(frame, message):
 
     
     #show windows
-    # cv.imshow("blue mask", createBlueMask(editImage(frame)))
-    # cv.imshow("red mask", createRedMask(editImage(frame)))
+    cv.imshow("blue mask", createBlueMask(editImage(frame)))
+    cv.imshow("red mask", createRedMask(editImage(frame)))
     
-    # # cv.imshow("frame", frame)
-    # # cv.resizeWindow("frame", 640,480)
+    
 
-    # # #break loop if key pressed
-    # if cv.waitKey(1) & 0xFF is ord('q'):
-    #     return frame
+    # #break loop if key pressed
+    if cv.waitKey(1) & 0xFF is ord('q'):
+        return frame
 
     return frame
 
