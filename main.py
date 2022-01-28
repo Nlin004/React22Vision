@@ -12,7 +12,7 @@ data = json.load(f)
 #accessing camera
 source = 1 #0 is native, 1 is external webcam
 camera = cv.VideoCapture(source, cv.CAP_DSHOW)
-camera.set(cv.CAP_PROP_EXPOSURE, -4) # change to -1 for internal camera, -7 for FISHEYE, -4 for Microsoft hd3000
+camera.set(cv.CAP_PROP_EXPOSURE, -7) # change to -1 for internal camera, -7 for FISHEYE, -4 for Microsoft hd3000
 
 
 def getDistance(focal_length, real_width, width_in_frame): # FIX THIS
@@ -24,11 +24,11 @@ def getDistance(focal_length, real_width, width_in_frame): # FIX THIS
 def isCircle(cnt, contours):
     approx = cv.approxPolyDP(cnt, 0.01 * cv.arcLength(cnt, True), True)
     
-    #(coord_x, coord_y), radius = cv.minEnclosingCircle(cnt)
+    (coord_x, coord_y), radius = cv.minEnclosingCircle(cnt)
     #center = (int(coord_x), int(coord_y))    
 
-    
-    if len(approx) > 8 and (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2 - cv.contourArea(cnt) < (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2) * (1 - 0.65)):
+    # if  1.0 >= cv.contourArea(cnt) / (radius**2 * 3.14) >= .8 and len(approx) > 8: 
+    if len(approx) > 8 and (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2 - cv.contourArea(cnt) < (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2) * (1 - 0.75)):
         return True
             
     
@@ -63,7 +63,7 @@ def drawRect(mask, img, color):
             #area = w * h
 
             #if  1.0 >= contour_area / (radius**2 * 3.14) >= .7 
-            if .8 <= aspect_ratio <= 1.2 and contour_area > 250:
+            if .8 <= aspect_ratio <= 1.2 and contour_area > 350:
                 #cv.circle(frame, (x+ (w/2), y+(y/2)), colored_box, 2)
                 distance = getDistance(630, 24.13, int(w))
                 distance = format((int(distance) * 1.1) / 100, '.2f')
@@ -172,15 +172,15 @@ def main(frame, message):
 
     
     #show windows
-    # cv.imshow("blue mask", mask_blue)
-    # cv.imshow("red mask", mask_red)
+    # cv.imshow("blue mask", createBlueMask(editImage(frame)))
+    # cv.imshow("red mask", createRedMask(editImage(frame)))
     
-    # cv.imshow("frame", frame)
-    # cv.resizeWindow("frame", 640,480)
+    # # cv.imshow("frame", frame)
+    # # cv.resizeWindow("frame", 640,480)
 
-    # #break loop if key pressed
+    # # #break loop if key pressed
     # if cv.waitKey(1) & 0xFF is ord('q'):
-    #     break
+    #     return frame
 
     return frame
 
