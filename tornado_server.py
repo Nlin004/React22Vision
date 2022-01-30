@@ -6,7 +6,7 @@ import tornado.websocket
 import cv2
 # from img_to_string import to_b64
 import base64
-from main import main, source
+from ball_detect import main, source
 
 from tornado.options import define, options
 
@@ -55,13 +55,13 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
     def on_close(self):
         print('connection closed')
 
-class CameraHandler(tornado.web.RequestHandler):
+class ShadowHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("./www/camera.html")
+        self.render("./www/line.html")
 
-class CameraSocketHandler(tornado.websocket.WebSocketHandler):
+class ShadowSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self, *args):
-        print("camera websocket connection")
+        print("line websocket connection")
     
     def on_message(self, message):
         self.write_message(message)
@@ -72,8 +72,8 @@ class CameraSocketHandler(tornado.websocket.WebSocketHandler):
 app = tornado.web.Application([
     (r'/', IndexHandler),
     (r'/ws/', WebSocketHandler),
-    (r'/camera/', CameraHandler),
-    (r'/camera/ws/', CameraSocketHandler)
+    (r'/line/', ShadowHandler),
+    (r'/line/ws/', ShadowSocketHandler)
 ])
 
 if __name__ == '__main__':

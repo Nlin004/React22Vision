@@ -25,25 +25,29 @@
     function send() {
         ws.send(document.getElementById("color").value);
     }
+
+    function change(){
+        clearInterval(createInterval);
+    }
     </script>
 </head>
 <body onload="init();">
-    <div id = "mask" style = "text-align: center; font-family: Comic Sans MS, Comic Sans, cursive">
-        <h2 class = "heading">Select Mask</h2>
+    <div id = "mask" style = "text-align: center; font-family: 'Courier New', Courier, monospace">
+        <h2>Select Mask</h2>
         <select id = "color" style = "border-radius: 7px; font-size: 20px">
             <option value = "none">none</option>
             <option value = "red">red</option>
             <option value = "blue">blue</option>
             <option value = "both">both</option>
         </select>
-        <h3 class = "heading">Response:</h3>
-        <img id = "frame" src = "">
+        <h3>Response:</h3>
+        <img id = "frame" src = ""><br>
 
-        <a href = "/camera/"><button>Camera</button></a>
+        <a href = "/line/" ><button onclick="change();">line</button></a>
     </div>
 
     <script>
-        var createInterval = setInterval(send, 10)
+        var createInterval = setInterval(send, 30)
     </script>
 </body>
 </html>

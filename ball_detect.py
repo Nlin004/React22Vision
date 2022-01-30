@@ -1,6 +1,4 @@
-from calendar import c
 import cv2 as cv
-from cv2 import cvtColor
 import numpy as np
 import json
 
