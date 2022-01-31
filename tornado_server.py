@@ -1,5 +1,6 @@
 # Writing the Tornado server to initiate the client request
 
+import webbrowser
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
@@ -7,7 +8,7 @@ import cv2
 # from img_to_string import to_b64
 import base64
 from ball_detect import main, source
-
+from line_detector import detect_line
 from tornado.options import define, options
 
 # Converts image to string using base64 encoding.
@@ -18,10 +19,10 @@ def to_b64(filename):
     return my_string
 
 # Websocket defined with port 8080.
-define('port', default=8080, type=int)
+define('port', default=2601, type=int)
 
 # you should know this
-cap = cv2.VideoCapture(source)
+cap = cv2.VideoCapture(source, cv2.CAP_DSHOW)
 
 # LIGHTING: -1 for internal camera, -7 for FISHEYE, -4 for Microsoft HD-3000
 cap.set(cv2.CAP_PROP_EXPOSURE, -7)
@@ -38,7 +39,7 @@ class IndexHandler(tornado.web.RequestHandler):
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
     # function to open a new connection to the WebSocket
     def open(self, *args):
-        print('new connection!')
+        print('new cargo connection!')
         # self.write_message('welcome!')
 
     # function to respond to a message on the WebSocket
@@ -57,14 +58,18 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
 class ShadowHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("./www/line.html")
+        self.render("websocket/www/line.html")
 
 class ShadowSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self, *args):
         print("line websocket connection")
     
     def on_message(self, message):
-        self.write_message(message)
+        _, frame = cap.read()
+        output_image = detect_line(frame)
+        cv2.imwrite("./websocket/line.jpg", output_image)
+        self.write_message(to_b64("./websocket/line.jpg"))
+
 
     def on_close(self):
         print('connection closed')
