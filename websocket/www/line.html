@@ -1,14 +1,14 @@
 <html>
     <head>
 
-        <title>Shadow Line</title>
+        <title style = "font-family: 'Courier New', Courier, monospace">Shadow Line</title>
 
         <script type = 'text/javascript'>
             var wsC = null;
 
             function init(){
                 if("WebSocket" in window){
-                    wsC = new WebSocket("ws://localhost:8080/line/ws/");
+                    wsC = new WebSocket("ws://100.99.64.192:2601/line/ws/");
                     
                     wsC.onopen = function(){
                         console.log("line connection opened");
@@ -39,7 +39,7 @@
         </script>
 
     </head>
-    <body onload = "init();">
+    <body onload = "init();" style = "font-family: 'Courier New', Courier, monospace">
         <h1> Shadow Line Detector </h1>
 
         <img id = "frame" src = ""><br>
