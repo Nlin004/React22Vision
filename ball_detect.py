@@ -170,8 +170,8 @@ def main(frame, message):
 
     
     #show windows
-    cv.imshow("blue mask", createBlueMask(editImage(frame)))
-    cv.imshow("red mask", createRedMask(editImage(frame)))
+    # cv.imshow("blue mask", createBlueMask(editImage(frame)))
+    # cv.imshow("red mask", createRedMask(editImage(frame)))
     
     
 
