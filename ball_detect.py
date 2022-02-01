@@ -17,8 +17,8 @@ def getDistance(focal_length, real_width, width_in_frame): # FIX THIS
     distance = (real_width * focal_length) / width_in_frame
    
     return distance
-   
 
+    
 def isCircle(cnt, contours):
     approx = cv.approxPolyDP(cnt, 0.01 * cv.arcLength(cnt, True), True)
     
@@ -32,7 +32,7 @@ def isCircle(cnt, contours):
     
     return False
 
-def drawRect(mask, img, color):
+def drawCircle(mask, img, color):
     #color dictionary
     colors = {"red": (0, 0, 255), "blue": (255, 0, 0), "white": (255,255,255)}
     # mask = cv.bitwise_and(img, img, mask = mask)
@@ -66,9 +66,9 @@ def drawRect(mask, img, color):
                 distance = getDistance(630, 24.13, int(w))
                 distance = format((int(distance) * 1.1) / 100, '.2f')
 
-                cv.circle(img, center, int(w/2), (0,255,0), 5)
+                cv.circle(img, center, int(w/2), (0,255,0), 2)
                 #cv.rectangle(frame, (x, y), (x + w, y + h), colored_box, 2)
-                cv.putText(img, color.upper() + " BALL " + str(distance) + " METERS", (x, y - 10), cv.FONT_HERSHEY_SIMPLEX, 0.5, colored_box, 2)
+                cv.putText(img, color.upper() + " BALL " + str(distance) + " M " + str(  (x+(w/2)-320) / 10  ), (x, y - 10), cv.FONT_HERSHEY_SIMPLEX, 0.5, colored_box, 2)
     #Draw rectangle with specific color using aspect ratio and area tests
     
           
@@ -161,12 +161,12 @@ def main(frame, message):
     
     #call on functions
     if message == "red":
-        drawRect( createRedMask(editImage(frame)), frame, "red")
+        drawCircle( createRedMask(editImage(frame)), frame, "red")
     elif message == "blue":
-        drawRect(    createBlueMask(editImage(frame)), frame, "blue")
+        drawCircle( createBlueMask(editImage(frame)), frame, "blue")
     elif message == "both":
-        drawRect( createRedMask(editImage(frame)), frame, "red")
-        drawRect(    createBlueMask(editImage(frame)), frame, "blue")
+        drawCircle( createRedMask(editImage(frame)), frame, "red")
+        drawCircle( createBlueMask(editImage(frame)), frame, "blue")
 
     
     #show windows
