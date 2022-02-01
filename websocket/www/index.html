@@ -5,7 +5,7 @@
     var ws = null;
     function init() {
         if ("WebSocket" in window) {
-            ws = new WebSocket("ws://100.99.64.192:2601/ws/");
+            ws = new WebSocket("ws://100.99.65.45:2601/ws/");
             ws.onopen = function() {
                 console.log("Connection is opened");
             }
@@ -41,8 +41,8 @@
             <option value = "both">both</option>
         </select>
         <a href = "/line/" ><button onclick="change();" style = "font-family: 'Courier New', Courier, monospace">line</button></a>
-        <h3>Response:</h3>
-        <img id = "frame" src = ""><br>
+       
+        <img id = "frame" src = "" alt="Response:"><br>
     </div>
 
         <!-- <a href = "/line/" ><button onclick="change();">line</button></a>
