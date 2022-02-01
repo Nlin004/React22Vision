@@ -12,7 +12,7 @@ import argparse
 from operator import xor
 
 from cv2 import CV_32F
-source = 0 # 1 is fisheye, 0 is fisheye.
+source = 1 # 1 is fisheye, 0 is fisheye.
 
 def callback(value):
     pass
