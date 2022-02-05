@@ -1,0 +1,47 @@
+<html>
+
+    <head>
+        <title>Information</title>
+        <script type = "text/javascript">
+            var wsI = null;
+            function init(){
+                if("WebSocket" in window){
+                    wsI = new WebSocket('ws://localhost:8080/info/ws/');
+
+                    wsI.onopen = function(){
+                        console.log("info open");
+                    }
+                    
+                    wsI.onclose = function(){
+                        console.log("info close")
+                    }
+
+                    wsI.onmessage = function(msg){
+                        var data = JSON.parse(msg.data);
+                        document.getElementById("distance").innerHTML = "Distance of Ball: " + data["ball_distance"];
+                        document.getElementById("angleball").innerHTML = "Angle of Ball: " + data["ball_angle"];
+                        document.getElementById("lineangle").innerHTML = "Line Angles: " + data["line_angle"];
+                    }
+
+                }
+
+            }
+
+            function send(){
+                wsI.send("");
+            }
+        </script>
+
+    </head>
+
+    <body onload = "init();">
+        <p id = "distance">Distance of Ball: No Value</p>
+        <p id = "angleball">Angle of Ball: No Value</p>
+        <p id = "lineangle">Line Angles: No Value</p>
+
+        <script>
+            var sendInterval = setInterval(send, 40);
+        </script>
+    </body>
+
+</html>
