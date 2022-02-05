@@ -9,6 +9,7 @@ data = json.load(f)
 
 #accessing camera
 source = 1 #0 is native, 1 is external webcam
+source2 = 0 # native
 camera = cv.VideoCapture(source, cv.CAP_DSHOW)
 camera.set(cv.CAP_PROP_EXPOSURE, -7) # change to -1 for internal camera, -7 for FISHEYE, -4 for Microsoft hd3000
 
@@ -24,13 +25,16 @@ def isCircle(cnt, contours):
     
     (coord_x, coord_y), radius = cv.minEnclosingCircle(cnt)
     #center = (int(coord_x), int(coord_y))    
-
-    # if  1.0 >= cv.contourArea(cnt) / (radius**2 * 3.14) >= .8 and len(approx) > 8: 
-    if len(approx) > 7 and (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2 - cv.contourArea(cnt) < (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2) * (1 - 0.69)):
+    circ_check_old = (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2 - cv.contourArea(cnt) < (3.14 * cv.minEnclosingCircle(cnt)[1] ** 2) * (1 - 0.69))
+    circ_check = 1.0 >= cv.contourArea(cnt) / (radius**2 * 3.14) >= .8
+    if circ_check and circ_check_old:
         return True
             
     
     return False
+
+global BALL_DISTANCE
+global BALL_ALIGN_DIST
 
 def drawCircle(mask, img, color):
     #color dictionary
@@ -52,6 +56,7 @@ def drawCircle(mask, img, color):
     for contour in contours:
         (coord_x, coord_y), radius = cv.minEnclosingCircle(contour)
         center = (int(coord_x), int(coord_y))
+        
 
         if isCircle(contour, contours):
 
@@ -61,14 +66,17 @@ def drawCircle(mask, img, color):
             #area = w * h
 
             #if  1.0 >= contour_area / (radius**2 * 3.14) >= .7 
-            if .8 <= aspect_ratio <= 1.2 and contour_area > 350:
+            if .75 <= aspect_ratio <= 1.25 and contour_area > 350:
                 #cv.circle(frame, (x+ (w/2), y+(y/2)), colored_box, 2)
                 distance = getDistance(630, 24.13, int(w))
                 distance = format((int(distance) * 1.1) / 100, '.2f')
+                quick_sort = sorted(contours, key = cv.contourArea, reverse = True)
+                biggest_contour = cv.contourArea(quick_sort[0])
 
-                cv.circle(img, center, int(w/2), (0,255,0), 2)
-                #cv.rectangle(frame, (x, y), (x + w, y + h), colored_box, 2)
-                cv.putText(img, color.upper() + " BALL " + str(distance) + " M " + str(  (x+(w/2)-320) / 10  ), (x, y - 10), cv.FONT_HERSHEY_SIMPLEX, 0.5, colored_box, 2)
+                if contour_area == biggest_contour:
+                    cv.circle(img, center, int(w/2), (0,255,0), 2)
+                    dist_from_center = (x+(w/2)-320) / 10 
+                    cv.putText(img, color.upper() + " BALL " + str(distance) + " M " + str(  dist_from_center ), (x, y - 10), cv.FONT_HERSHEY_SIMPLEX, 0.5, colored_box, 2)
     #Draw rectangle with specific color using aspect ratio and area tests
     
           
@@ -92,8 +100,8 @@ def createBlueMask(img):
     #img_rgb = cv.cvtColor(img, cv.COLOR_BGR2RGB)
     hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 
-    lower1 = np.array(data[str(source)]["hsv_blue"]["lower"])
-    upper1 = np.array(data[str(source)]["hsv_blue"]["upper"])
+    lower1 = np.array(data[str(source) + "-fe"]["hsv_blue"]["lower"])
+    upper1 = np.array(data[str(source) + "-fe"]["hsv_blue"]["upper"])
 
     # if(source == 1): #for fisheye:
     #     lower1 = np.array([76,105,17])               # S = 80 for pants!  76 80 17 my laptop cam: ([99,90,50]) # (45, 120, 50)
@@ -120,10 +128,10 @@ def createRedMask(img):
     #red values
     hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
     
-    lower1 = np.array(data[str(source)]["hsv_red1"]["lower"])
-    upper1 = np.array(data[str(source)]["hsv_red1"]["upper"])
-    lower2 = np.array(data[str(source)]["hsv_red2"]["lower"])
-    upper2 = np.array(data[str(source)]["hsv_red2"]["upper"])
+    lower1 = np.array(data[str(source)+"-fe"]["hsv_red1"]["lower"])
+    upper1 = np.array(data[str(source)+"-fe"]["hsv_red1"]["upper"])
+    lower2 = np.array(data[str(source)+"-fe"]["hsv_red2"]["lower"])
+    upper2 = np.array(data[str(source)+"-fe"]["hsv_red2"]["upper"])
     
     if(source == 0): # integrated webcam
         #lower_red_2 = np.array([0,0,0])
@@ -141,7 +149,9 @@ def createRedMask(img):
         # upper_red_1 = np.array([245,255,255])  #np.array([94,255,255])      #np.array([245,255,255])  
         mask_red = cv.inRange(hsv, lower1, upper1)
         mask_red2 = cv.inRange(hsv, lower2, upper2)
-        mask_red = cv.bitwise_or(mask_red,mask_red2)
+        mask_red = cv.bitwise_or(mask_red,mask_red2) # UNCOMMENT FOR NORMAL WEBCAM, COMMENT FOR FISHEYE
+        
+        
         #mask_red = cv.cvtColor(mask_red, cv.COLOR_HSV2BGR)
         #mask_red = cv.cvtColor(mask_red, cv.COLOR_BGR2GRAY)
 
@@ -172,12 +182,16 @@ def main(frame, message):
     #show windows
     # cv.imshow("blue mask", createBlueMask(editImage(frame)))
     # cv.imshow("red mask", createRedMask(editImage(frame)))
+    # cv.imshow("frame", frame)
+    
     
     
 
     # #break loop if key pressed
     if cv.waitKey(1) & 0xFF is ord('q'):
+        
         return frame
+        
 
     return frame
 
