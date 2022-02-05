@@ -8,7 +8,7 @@
 
             function init(){
                 if("WebSocket" in window){
-                    wsC = new WebSocket("ws://100.99.65.45:2601/line/ws/");
+                    wsC = new WebSocket("ws://100.99.71.128:1111/line/ws/");
                     
                     wsC.onopen = function(){
                         console.log("line connection opened");
@@ -43,6 +43,7 @@
         <h1> Shadow Line Detector </h1>
 
         <img id = "frame" src = ""><br>
+        <p id = "angle"></p>
 
         <a href = "/"><button onclick = "change();">cargo</button></a>
 

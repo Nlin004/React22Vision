@@ -3,11 +3,13 @@ import numpy as np
 import math
 import cv2 as cv 
 import json
+# from find_parallel_lines import find_parallel_lines
 
 
-source = 1 #0 is native, 1 is external webcam
+source = 0 #0 is native, 1 is external webcam
 camera = cv.VideoCapture(source, cv.CAP_DSHOW)
 camera.set(cv.CAP_PROP_EXPOSURE, -7) # change to -1 for internal camera, -7 for FISHEYE, -4 for Microsoft hd3000
+
 MIN_AREA = 500
 
 def sobel_edge(frame):
@@ -36,22 +38,9 @@ def laplace_edge(frame):
     return abs_dst
 
 def isRect(cnt, approx, ar):
-    return len(approx) == 4 and cv.contourArea(cnt) > MIN_AREA and not (0.8 <= ar <= 1.1)
+    return len(approx) == 4  and cv.contourArea(cnt) > MIN_AREA and  (0.3 <= ar <= 1.7)
 
 def maskColor(frame):
-    # frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
-    # lower_gray = np.array([0, 0, 0], np.uint8)
-    # upper_gray = np.array([40, 58, 48], np.uint8)
-    # # mask = cv.InRangeS(imgHSV, cv.Scalar(0, 0, 0, 0), cv.Scalar(180, 255, 30, 0), imgThreshold)
-    # # thresh = cv.threshold(frame, 60, 255, cv.THRESH_BINARY_INV)
-    # mask_gray = cv.inRange(frame, lower_gray, upper_gray)
-    # # img_res = cv.bitwise_and(mask_gray, mask_gray, mask = mask_gray)
-
-    # # mask = cv.inRange(frame, (0,0,0), (90,129,150))
-    # frame = cv.bitwise_and(frame, frame, mask = mask_gray)
-    # frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    # return frame # frame 
-
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     blurred = cv.GaussianBlur(gray, (5,5), 3)
     ret, thresh = cv.threshold(blurred, 45, 255, cv.THRESH_BINARY_INV)
@@ -60,7 +49,10 @@ def maskColor(frame):
     return thresh
 
 def findRect(frame, output):
+
     contours, _ = cv.findContours(frame, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    angles = []
+    
     for(index, contour) in enumerate(contours):
         peri = cv.arcLength(contour, True)
         approx = cv.approxPolyDP(contour, 0.01 * peri, True)
@@ -68,38 +60,64 @@ def findRect(frame, output):
         aspect_ratio = w / h
         
         if isRect(contour, approx, aspect_ratio):
-            cv.rectangle(output, (x,y), (x+w, y+h), (0,255,255))
+            rect = cv.minAreaRect(contour)
+            box = cv.boxPoints(rect)
+            box = np.int0(box)
+            # cv.drawContours(output, [box], 0, (0, 255, 0), 2)
+            p1, p2 = get_longest_line(box)
+            cv.line(output, p1, p2, (255, 255, 255), 3)
+            ang = get_angle(p1, p2)
+            angles.append(ang)
+            cv.putText(output, f"{str(ang)} degrees", (int(x), int(y-10)), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255,255))
 
-            _, cols = frame.shape[:2]
-            [vx, vy,x,y] = cv.fitLine(contour, cv.DIST_L2,0,0.01,0.01)
-            lefty = int((-x*vy/vx) + y)
-            righty = int(((cols-x)*vy/vx)+y)
-            p1 = (cols-1, righty)
-            p2 = (0, lefty)
+def get_longest_line(box):
+    midpoints = [get_midpoint(box[i], box[(i + 1) % 4]) for i in range(4)]
+    d1 = get_distance(midpoints[3], midpoints[1])
+    d2 = get_distance(midpoints[0], midpoints[2])
 
-            
-            cv.line(output, p1,p2,(0,0,255),2)
-            print(get_angle(p1, p2))
-            cv.putText(output, f"{str(get_angle(p1,p2))} degrees", (int(x), int(y-10)), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255)) 
+    if d1 > d2:
+        return (midpoints[3], midpoints[1])
+    else:
+        return (midpoints[0], midpoints[2])
+    
+
+def get_midpoint(p1, p2):
+    x = (p1[0] + p2[0])/2
+    y = (p1[1] + p2[1])/2
+    return(int(x), int(y))
+
+def get_distance(p1, p2):
+    return math.sqrt(math.pow(p1[0] - p2[0], 2) + math.pow(p1[1] - p2[1], 2))
 
 def get_angle(p1,p2):
-    
-    m = ((p1[1] - p2[1]) / (p1[0] - p2[0]))
-    return format(math.atan(m) * -180 / math.pi, '.0f')
+    dy = (p1[0] - p2[0])
+    if dy != 0:
+        m = (p1[1] - p2[1])/dy
+    else:
+        m = 0
+    return format(math.atan(m) * -180 / math.pi, '.0f')    
+
          
 
-def detect_line(frame):
+def detect_line(frame, get_data = False):
     masked_frame = maskColor(frame)
-    findRect(masked_frame, frame)
 
-    cv.imshow("Line Mask", masked_frame)
+    angles = findRect(masked_frame, frame)
 
-    if cv.waitKey(1) & 0xFF is ord('q'):
+    if get_data:
+        print(angles)
+        return angles
+    else:
         return frame
 
 
-    return frame
-
+if __name__ == "__main__":
+    while True:
+        _, frame = camera.read()
+        output = detect_line(frame)
+        cv.imshow("fraem", output)
+        if cv.waitKey(1) == ord('q'):
+            break
 
 # while True:
 #     ret, img = camera.read()
