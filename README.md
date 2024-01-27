@@ -1,4 +1,4 @@
-# 2022 Computer Vision Code for FRC 2601 Game
+# 2022 Computer Vision Code for FRC Rapid React 2022, team 2601
 
 While we ended up working with Limelight for 2022 FRC season, our development project working with computer vision utilizing OpenCV and other related Python libraries
 were a significant enough undertaking that it constituted a good portion of our development work for the year.  
